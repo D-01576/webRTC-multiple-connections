@@ -7,7 +7,10 @@
 .page .left{
   width: 75vw;
   height: 100vh;
-  background: blue;
+  background: rgba(79, 78, 78, 0.596);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 }
 
 .page .right {
@@ -54,4 +57,19 @@
 
 .page .left{
   display: flex;
+}
+
+.wait{
+  color: red;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-size: 20px;
+  font-weight: bolder;
+  margin-top: absolute;
+}
+.uservide{
+  width: 500px;
+  height: 500px;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
 }

@@ -18,6 +18,7 @@ function App() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [localAudioTrack, setLocalAudioTrack] = useState<MediaStreamTrack | null>(null);
   const [localVideoTrack, setlocalVideoTrack] = useState<MediaStreamTrack | null>(null);
+  const [wait, setwait] = useState<boolean>(true)
   const selfVideo = useRef<HTMLVideoElement>(null);
   const userVideo = useRef<HTMLVideoElement>(null);
   // const [pc, setpc] = useState<RTCPeerConnection | null>(null);
@@ -44,7 +45,7 @@ function App() {
         // MediaStream
     }
     getCam()
-    const wss = new WebSocket("http://localhost:3000/")
+    const wss = new WebSocket("http://192.168.18.222:3000/")
     setSocket(wss)
     wss.onmessage = (e)=>{
       const data = JSON.parse(e.data);
@@ -64,6 +65,7 @@ function App() {
           // userVideo.current.srcObject.addTrack(track1)
           //@ts-ignore
           userVideo.current.srcObject = newmedia;
+          setwait(false)
           //@ts-ignore
           userVideo.current.play()
         }
@@ -94,6 +96,7 @@ function App() {
         pc = new RTCPeerConnection(); 
         
         pc.ontrack = ()=>{
+          console.log("klj")
           const newmedia = new MediaStream();
           const track1 : MediaStreamTrack | undefined = pc?.getTransceivers()[0].receiver.track
           console.log("track1",track1)
@@ -105,9 +108,26 @@ function App() {
           // userVideo.current.srcObject.addTrack(track1)
           //@ts-ignore
           userVideo.current.srcObject = newmedia;
+          setwait(false)
           //@ts-ignore
           userVideo.current.play()
         }
+        setTimeout(() => {
+          const newmedia = new MediaStream();
+          const track1 : MediaStreamTrack | undefined = pc?.getTransceivers()[0].receiver.track
+          console.log("track1",track1)
+          if(track1 === undefined) return
+          newmedia.addTrack(track1);
+          const track2 : MediaStreamTrack | undefined  = pc?.getTransceivers()[1].receiver.track
+          if(track2 === undefined) return
+          newmedia.addTrack(track2);
+          // userVideo.current.srcObject.addTrack(track1)
+          //@ts-ignore
+          userVideo.current.srcObject = newmedia;
+          setwait(false)
+          //@ts-ignore
+          userVideo.current.play()
+        }, 8000);
         pc.onicecandidate = (event)=>{
           console.log("receiver candidate to send")
           if(event.candidate){
@@ -177,9 +197,15 @@ function App() {
             <h2>ME</h2>
         <video autoPlay width={400} height={400} ref={selfVideo} />
         </div>
-        <div>
-            <h2>YOU</h2>
+        <div className='uservide'>
+            <h2>Other</h2>
+            {wait && (
+              <div className='wait'>wait</div>
+            )}
+            {/* {!wait && ( */}
+
         <video autoPlay width={400} height={400} ref={userVideo} />
+            {/* )}  */}
         </div>
       </div>
       <div className='right'>

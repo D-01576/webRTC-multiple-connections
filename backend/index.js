@@ -72,18 +72,22 @@ wss.on('connection', (ws) => {
       if(data.role === "sender"){
         console.log("sender")
         const targetWS = chatting.find(chat => chat.sender === ws).receiver;
-        targetWS.send(JSON.stringify({
-          type : "ice-candidate",
-          role: "receiver",
-          candidate: data.candidate
-        }))
+        setTimeout(() => {
+          targetWS.send(JSON.stringify({
+            type : "ice-candidate",
+            role: "receiver",
+            candidate: data.candidate
+          }))
+        }, 5000);
       }else {
         console.log("receiver")
         const targetWS = chatting.find(chat => chat.receiver === ws).sender;
-        targetWS.send(JSON.stringify({
-          type : "ice-candidate",
-          candidate: data.candidate
-        }))
+        setTimeout(() => {
+          targetWS.send(JSON.stringify({
+            type : "ice-candidate",
+            candidate: data.candidate
+          }))
+        }, 5000);
       }
     }
   });
