@@ -1,0 +1,57 @@
+.page{
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+}
+
+.page .left{
+  width: 75vw;
+  height: 100vh;
+  background: blue;
+}
+
+.page .right {
+  width: 25vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.page .right .addBtn{
+  width: 95%;
+  background: rgba(249, 249, 249, 0.863);
+  color: black;
+  margin-bottom: 10px;
+  font-weight: bolder;
+}
+
+.page .right .Rooms{
+  border: 1px solid white;
+  width: 20vw;
+  height: 60vh;
+  padding: 20px;
+  overflow: scroll;
+  overflow-x: hidden;
+}
+
+.page .right .Rooms .Room{
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  height: 60px;
+  align-items: center;
+  border-bottom: 1px solid white;
+}
+
+.page .right .Rooms .RoomName{
+  color: rgba(255, 255, 255, 0.753);
+}
+
+.page .right .Rooms button{
+  height: 40px;
+}
+
+.page .left{
+  display: flex;
+}
