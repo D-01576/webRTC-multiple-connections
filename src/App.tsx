@@ -7,17 +7,17 @@ interface Room {
   RoomName: string;
   sdp: string;
 }
+//@ts-ignore
 let videoTrack = null;
 //@ts-ignore
 let audioTrack = null; 
+//@ts-ignore
 let pc = null
 
 function App() {
   const [Room, setRoom] = useState([])
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
   const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [localAudioTrack, setLocalAudioTrack] = useState<MediaStreamTrack | null>(null);
-  const [localVideoTrack, setlocalVideoTrack] = useState<MediaStreamTrack | null>(null);
   const [wait, setwait] = useState<boolean>(true)
   const selfVideo = useRef<HTMLVideoElement>(null);
   const userVideo = useRef<HTMLVideoElement>(null);
@@ -35,8 +35,6 @@ function App() {
         // MediaStream
         audioTrack = stream.getAudioTracks()[0]
         videoTrack = stream.getVideoTracks()[0]
-        setLocalAudioTrack(audioTrack);
-        setlocalVideoTrack(videoTrack);
         if (!userVideo.current) {
             return;
         }
@@ -45,7 +43,7 @@ function App() {
         // MediaStream
     }
     getCam()
-    const wss = new WebSocket("http://192.168.18.222:3000/")
+    const wss = new WebSocket("https://webrtc-multiple-connections.onrender.com/")
     setSocket(wss)
     wss.onmessage = (e)=>{
       const data = JSON.parse(e.data);
@@ -53,12 +51,14 @@ function App() {
         console.log("order to create offer")
         pc = new RTCPeerConnection();
 
-        pc.ontrack = (e)=>{
+        pc.ontrack = ()=>{
           const newmedia = new MediaStream();
+          //@ts-ignore
           const track1 : MediaStreamTrack | undefined = pc?.getTransceivers()[0].receiver.track
           console.log("track1",track1)
           if(track1 === undefined) return
           newmedia.addTrack(track1);
+          //@ts-ignore
           const track2 : MediaStreamTrack | undefined  = pc?.getTransceivers()[1].receiver.track
           if(track2 === undefined) return
           newmedia.addTrack(track2);
@@ -85,7 +85,9 @@ function App() {
         }
 
         pc.onnegotiationneeded = async ()=>{
+          //@ts-ignore
           const offer = await pc.createOffer();
+          //@ts-ignore
           pc.setLocalDescription(offer);
           wss?.send(JSON.stringify({type :"create-offer", RoomName: data.RoomName, sdp : offer}));
         }
@@ -98,10 +100,12 @@ function App() {
         pc.ontrack = ()=>{
           console.log("klj")
           const newmedia = new MediaStream();
+          //@ts-ignore
           const track1 : MediaStreamTrack | undefined = pc?.getTransceivers()[0].receiver.track
           console.log("track1",track1)
           if(track1 === undefined) return
           newmedia.addTrack(track1);
+          //@ts-ignore
           const track2 : MediaStreamTrack | undefined  = pc?.getTransceivers()[1].receiver.track
           if(track2 === undefined) return
           newmedia.addTrack(track2);
@@ -114,10 +118,12 @@ function App() {
         }
         setTimeout(() => {
           const newmedia = new MediaStream();
+          //@ts-ignore
           const track1 : MediaStreamTrack | undefined = pc?.getTransceivers()[0].receiver.track
           console.log("track1",track1)
           if(track1 === undefined) return
           newmedia.addTrack(track1);
+          //@ts-ignore
           const track2 : MediaStreamTrack | undefined  = pc?.getTransceivers()[1].receiver.track
           if(track2 === undefined) return
           newmedia.addTrack(track2);
@@ -127,7 +133,7 @@ function App() {
           setwait(false)
           //@ts-ignore
           userVideo.current.play()
-        }, 8000);
+        }, 300);
         pc.onicecandidate = (event)=>{
           console.log("receiver candidate to send")
           if(event.candidate){
@@ -140,7 +146,9 @@ function App() {
         }
         //@ts-ignore
         pc.setRemoteDescription(data.sdp).then(()=>{
+          //@ts-ignore
           pc?.createAnswer().then((answer)=>{
+            //@ts-ignore
             pc.setLocalDescription(answer);
             wss.send(JSON.stringify({
               type: "create-answer",
@@ -163,7 +171,7 @@ function App() {
         //   console.log(data.candidate)
         // }
         // console.log(dsetTimeata.candidate)
-        console.log(pc)
+        //@ts-ignore
         pc?.addIceCandidate(data.candidate)
       }
     }
