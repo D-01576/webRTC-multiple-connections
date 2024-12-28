@@ -1,6 +1,7 @@
 const express = require('express');
 const http = require('http');
 const { WebSocketServer } = require('ws');
+const cors = require("cors")
 
 const app = express();
 const server = http.createServer(app);
@@ -8,10 +9,16 @@ const wss = new WebSocketServer({ server });
 let Rooms = [];
 let chatting = [];
 let connections = [];
-
+app.use(cors())
 app.get('/', (req, res) => {
   res.send('WebSocket server is running.');
 });
+
+app.get("/rooms",(req,res)=>{
+  res.json({
+    Rooms: Rooms
+  })
+})
 
 function broadcastRooms() {
   const sanitizedRooms = Rooms.map(room => {
@@ -28,8 +35,6 @@ function broadcastRooms() {
 }
 
 wss.on('connection', (ws) => {
-  broadcastRooms()
-  
   connections.push(ws);
   console.log("Client connected");
 
@@ -44,6 +49,13 @@ wss.on('connection', (ws) => {
     }else if(data.type === "join-room"){
       console.log("join-room")
       const targetWS = Rooms.find(room => room.RoomName === data.RoomName).ws;
+      const index = Rooms.findIndex(item => item.RoomName === data.RoomName);
+      if (index !== -1) {
+        Rooms.splice(index, 1);
+        console.log("removed");
+        broadcastRooms(); 
+        console.log(Rooms)
+      }
       chatting.push({RoomName : data.RoomName, sender : targetWS, receiver : ws});
       targetWS.send(JSON.stringify({
         type:"order-create-offer",
@@ -78,7 +90,7 @@ wss.on('connection', (ws) => {
             role: "receiver",
             candidate: data.candidate
           }))
-        }, 5000);
+        }, 500);
       }else {
         console.log("receiver")
         const targetWS = chatting.find(chat => chat.receiver === ws).sender;
@@ -87,7 +99,7 @@ wss.on('connection', (ws) => {
             type : "ice-candidate",
             candidate: data.candidate
           }))
-        }, 5000);
+        }, 500);
       }
     }
   });

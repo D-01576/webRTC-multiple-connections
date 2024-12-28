@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import Rooms from './component/rooms'
 import RoomNamePopup from './component/addRoom';
+import axios from 'axios';
 
 interface Room {
   RoomName: string;
@@ -18,7 +20,10 @@ function App() {
   const [Room, setRoom] = useState([])
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
   const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [myroom,setmyroom] = useState<string>("")
   const [wait, setwait] = useState<boolean>(true)
+  const [waitofsender, setwos] = useState<boolean>(false)
+  const [right, setright] = useState<boolean>(true)
   const selfVideo = useRef<HTMLVideoElement>(null);
   const userVideo = useRef<HTMLVideoElement>(null);
   // const [pc, setpc] = useState<RTCPeerConnection | null>(null);
@@ -27,6 +32,12 @@ function App() {
   const handleClosePopup = () => setIsPopupOpen(false);
 
   useEffect(()=>{
+    async function roomupdate() {
+      const res = await axios.get("http://localhost:3000/Rooms");
+      setRoom(res.data.Rooms)
+    }
+
+    roomupdate()
     const getCam = async () => {
         const stream = await window.navigator.mediaDevices.getUserMedia({
             video: true,
@@ -43,13 +54,35 @@ function App() {
         // MediaStream
     }
     getCam()
-    const wss = new WebSocket("https://webrtc-multiple-connections.onrender.com/")
+    const wss = new WebSocket("http://localhost:3000")
     setSocket(wss)
     wss.onmessage = (e)=>{
       const data = JSON.parse(e.data);
-      if(data.type === "order-create-offer"){
+      if(data.type == "rooms-update"){
+        setRoom(data.rooms)
+      }
+      else if(data.type === "order-create-offer"){
+        setwos(false)
         console.log("order to create offer")
-        pc = new RTCPeerConnection();
+        pc = new RTCPeerConnection({
+          iceServers: [
+            {
+              urls: ["stun:ss-turn1.xirsys.com"]
+            },
+            {
+              username: "qPuPXUyOUw8gS71ux-nRTVnXW0VPuhD3oCX-aq_qGZZkF6BPbNYciQowAVA0Tkp1AAAAAGdu8SlzYXJmYXJhejAxNTc2",
+              credential: "fcfb62a6-c47f-11ef-8a59-0242ac140004",
+              urls: [
+                "turn:ss-turn1.xirsys.com:80?transport=udp",
+                "turn:ss-turn1.xirsys.com:3478?transport=udp",
+                "turn:ss-turn1.xirsys.com:80?transport=tcp",
+                "turn:ss-turn1.xirsys.com:3478?transport=tcp",
+                "turns:ss-turn1.xirsys.com:443?transport=tcp",
+                "turns:ss-turn1.xirsys.com:5349?transport=tcp"
+              ]
+            }
+          ]
+        });
 
         pc.ontrack = ()=>{
           const newmedia = new MediaStream();
@@ -95,7 +128,25 @@ function App() {
       }
       else if(data.type === "create-offer"){
         console.log("created offer")
-        pc = new RTCPeerConnection(); 
+        pc = new RTCPeerConnection({
+          iceServers: [
+            {
+              urls: ["stun:ss-turn1.xirsys.com"]
+            },
+            {
+              username: "qPuPXUyOUw8gS71ux-nRTVnXW0VPuhD3oCX-aq_qGZZkF6BPbNYciQowAVA0Tkp1AAAAAGdu8SlzYXJmYXJhejAxNTc2",
+              credential: "fcfb62a6-c47f-11ef-8a59-0242ac140004",
+              urls: [
+                "turn:ss-turn1.xirsys.com:80?transport=udp",
+                "turn:ss-turn1.xirsys.com:3478?transport=udp",
+                "turn:ss-turn1.xirsys.com:80?transport=tcp",
+                "turn:ss-turn1.xirsys.com:3478?transport=tcp",
+                "turns:ss-turn1.xirsys.com:443?transport=tcp",
+                "turns:ss-turn1.xirsys.com:5349?transport=tcp"
+              ]
+            }
+          ]
+        });; 
         
         pc.ontrack = ()=>{
           console.log("klj")
@@ -159,9 +210,7 @@ function App() {
         })
         getCameraStreamAndSend(pc)
       }
-      else if(data.type === "rooms-update"){
-        setRoom(data.rooms)
-      }else if(data.type === "create-answer"){
+      else if(data.type === "create-answer"){
         console.log("created answer")
         //@ts-ignore
         pc?.setRemoteDescription(data.sdp);
@@ -171,8 +220,9 @@ function App() {
         //   console.log(data.candidate)
         // }
         // console.log(dsetTimeata.candidate)
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        pc?.addIceCandidate(data.candidate)
+        pc.addIceCandidate(new RTCIceCandidate(data.candidate));
       }
     }
   },[])
@@ -182,6 +232,9 @@ function App() {
       RoomName : roomName
     }))
     setIsPopupOpen(false);
+    setright(false)
+    setmyroom(roomName)
+    setwos(true)
   };
 
   const handlejoining = async (room: Room)=>{
@@ -189,6 +242,8 @@ function App() {
       type : "join-room",
       RoomName : room.RoomName
     }))
+    setright(false)
+    setmyroom(room.RoomName)
   }
 
   //@ts-ignore
@@ -201,25 +256,36 @@ function App() {
   return (
     <div className='page'>
       <div className='left'>
-        <div>
-            <h2>ME</h2>
-        <video autoPlay width={400} height={400} ref={selfVideo} />
+        <div className='mevideo'>
+            <h2 className='melabel'>ME</h2>
+        <video autoPlay width={400} height={400} ref={selfVideo} controls className='video'/>
         </div>
         <div className='uservide'>
-            <h2>Other</h2>
+            <h2 className='otherlabel'>Other</h2>
             {wait && (
               <div className='wait'>wait</div>
             )}
             {/* {!wait && ( */}
 
-        <video autoPlay width={400} height={400} ref={userVideo} />
+              <video autoPlay width={400} height={400} ref={userVideo} controls className='video'/>
             {/* )}  */}
         </div>
       </div>
+      {right && (
       <div className='right'>
         <button className='addBtn' onClick={handleOpenPopup}>Add Room</button>
         <Rooms Rooms={Room} handlejoin={handlejoining}></Rooms>
       </div>
+      )}
+      {!right && (
+        <div className='ifright'>
+
+          <h3 className='myroom'>Your room : {myroom}</h3>
+        {waitofsender && (
+          <div className='waitwhile'>wait while anyone join</div>
+        )}
+        </div>
+      )}
       {isPopupOpen && (
         <RoomNamePopup onSubmit={handleRoomSubmit} onClose={handleClosePopup} />
       )}
