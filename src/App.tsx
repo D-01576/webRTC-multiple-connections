@@ -24,6 +24,8 @@ function App() {
   const [wait, setwait] = useState<boolean>(true)
   const [waitofsender, setwos] = useState<boolean>(false)
   const [right, setright] = useState<boolean>(true)
+  const [leaveoption, setleaveoption] = useState<boolean>(false)
+  const [leftvideo,setleftvideo] = useState<boolean>(false)
   const selfVideo = useRef<HTMLVideoElement>(null);
   const userVideo = useRef<HTMLVideoElement>(null);
   // const [pc, setpc] = useState<RTCPeerConnection | null>(null);
@@ -33,7 +35,7 @@ function App() {
 
   useEffect(()=>{
     async function roomupdate() {
-      const res = await axios.get("http://localhost:3000/Rooms");
+      const res = await axios.get("https://webrtc-multiple-connections.onrender.com/Rooms");
       setRoom(res.data.Rooms)
     }
 
@@ -54,16 +56,27 @@ function App() {
         // MediaStream
     }
     getCam()
-    const wss = new WebSocket("http://localhost:3000")
+    const wss = new WebSocket("wss://webrtc-multiple-connections.onrender.com/")
     setSocket(wss)
     wss.onmessage = (e)=>{
       const data = JSON.parse(e.data);
       if(data.type == "rooms-update"){
         setRoom(data.rooms)
+      }else if(data.type == "leave-room"){
+        if (userVideo.current) {
+          const mediaStream = userVideo.current.srcObject;
+          if (mediaStream) {
+            const tracks = mediaStream.getTracks();
+            tracks.forEach((track) => track.stop());
+            userVideo.current.srcObject = null;
+          }
+        }
+        setleaveoption(false);
+        setleftvideo(true)
+        
       }
       else if(data.type === "order-create-offer"){
         setwos(false)
-        console.log("order to create offer")
         pc = new RTCPeerConnection({
           iceServers: [
             {
@@ -88,7 +101,6 @@ function App() {
           const newmedia = new MediaStream();
           //@ts-ignore
           const track1 : MediaStreamTrack | undefined = pc?.getTransceivers()[0].receiver.track
-          console.log("track1",track1)
           if(track1 === undefined) return
           newmedia.addTrack(track1);
           //@ts-ignore
@@ -99,21 +111,19 @@ function App() {
           //@ts-ignore
           userVideo.current.srcObject = newmedia;
           setwait(false)
+          setleaveoption(true)
           //@ts-ignore
           userVideo.current.play()
         }
         
 
         pc.onicecandidate = (event)=>{
-          console.log("snder candidate to send")
           if(event.candidate){
-            console.log("candidate available ")
             wss.send(JSON.stringify({
               type : "ice-candidate",
               role : "sender",
               candidate : event.candidate
             }))
-            console.log(event.candidate)
           }
         }
 
@@ -127,7 +137,6 @@ function App() {
         getCameraStreamAndSend(pc)
       }
       else if(data.type === "create-offer"){
-        console.log("created offer")
         pc = new RTCPeerConnection({
           iceServers: [
             {
@@ -149,11 +158,9 @@ function App() {
         });; 
         
         pc.ontrack = ()=>{
-          console.log("klj")
           const newmedia = new MediaStream();
           //@ts-ignore
           const track1 : MediaStreamTrack | undefined = pc?.getTransceivers()[0].receiver.track
-          console.log("track1",track1)
           if(track1 === undefined) return
           newmedia.addTrack(track1);
           //@ts-ignore
@@ -164,6 +171,7 @@ function App() {
           //@ts-ignore
           userVideo.current.srcObject = newmedia;
           setwait(false)
+          setleaveoption(true)
           //@ts-ignore
           userVideo.current.play()
         }
@@ -171,7 +179,6 @@ function App() {
           const newmedia = new MediaStream();
           //@ts-ignore
           const track1 : MediaStreamTrack | undefined = pc?.getTransceivers()[0].receiver.track
-          console.log("track1",track1)
           if(track1 === undefined) return
           newmedia.addTrack(track1);
           //@ts-ignore
@@ -182,11 +189,11 @@ function App() {
           //@ts-ignore
           userVideo.current.srcObject = newmedia;
           setwait(false)
+          setleaveoption(true)
           //@ts-ignore
           userVideo.current.play()
         }, 300);
         pc.onicecandidate = (event)=>{
-          console.log("receiver candidate to send")
           if(event.candidate){
             wss.send(JSON.stringify({
               type : "ice-candidate",
@@ -211,16 +218,9 @@ function App() {
         getCameraStreamAndSend(pc)
       }
       else if(data.type === "create-answer"){
-        console.log("created answer")
         //@ts-ignore
         pc?.setRemoteDescription(data.sdp);
       }else if(data.type === "ice-candidate"){
-        // if(data.role === "receiver"){
-
-        //   console.log(data.candidate)
-        // }
-        // console.log(dsetTimeata.candidate)
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         pc.addIceCandidate(new RTCIceCandidate(data.candidate));
       }
@@ -244,6 +244,13 @@ function App() {
     }))
     setright(false)
     setmyroom(room.RoomName)
+  }
+
+  const leavelive = ()=>{
+    socket?.send(JSON.stringify({
+      type: "leave-room",
+      RoomName : myroom
+    }))
   }
 
   //@ts-ignore
@@ -283,6 +290,17 @@ function App() {
           <h3 className='myroom'>Your room : {myroom}</h3>
         {waitofsender && (
           <div className='waitwhile'>wait while anyone join</div>
+        )}
+        {leaveoption && (
+          <button onClick={leavelive}>End Call</button>
+        )}
+        {leftvideo && (
+          <div className='lleftcall'>
+            <h3>User left</h3>
+            <button onClick={()=>{
+              window.location.reload()
+            }}>Join another call</button>
+          </div>
         )}
         </div>
       )}
