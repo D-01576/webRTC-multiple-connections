@@ -66,7 +66,9 @@ function App() {
         if (userVideo.current) {
           const mediaStream = userVideo.current.srcObject;
           if (mediaStream) {
+            //@ts-ignore
             const tracks = mediaStream.getTracks();
+            //@ts-ignore
             tracks.forEach((track) => track.stop());
             userVideo.current.srcObject = null;
           }

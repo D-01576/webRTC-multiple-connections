@@ -27,6 +27,7 @@ const RoomNamePopup: React.FC<RoomNamePopupProps> = ({ onSubmit, onClose }) => {
           onChange={(e) => setRoomName(e.target.value)}
           placeholder="Room Name"
           style={styles.input}
+          max={20}
         />
         <div style={styles.actions}>
           <button onClick={onClose} style={{ ...styles.button, backgroundColor: "#ccc" }}>
