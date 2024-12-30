@@ -134,6 +134,7 @@ body{
   gap: 20px;
   overflow: scroll;
   min-height: 50vh;
+  max-height: 50vh;
   overflow-x: hidden;
   padding: 20px;
   background-color: #121212; /* Black theme */
@@ -210,6 +211,8 @@ button:active {
     align-items: center;
     padding: 20px;
     padding-right: 40px;
+    overflow: scroll;
+    overflow-x: hidden;
   }
 
   .uservide.livebig{
