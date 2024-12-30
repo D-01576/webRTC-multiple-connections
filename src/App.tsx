@@ -37,6 +37,20 @@ function App() {
   const handleOpenPopup = () => setIsPopupOpen(true);
   const handleClosePopup = () => setIsPopupOpen(false);
 
+  // useEffect(()=>{
+  //   if(leaveoption){
+  //     .uservide{
+  //       height: 100%;
+  //       width: 65%;
+  //     }
+  //   }else {
+  //     .mevideo{
+  //         height: 100%;
+  //         width: 65%;
+  //     }
+  //   }
+  // },[leaveoption])
+
   useEffect(()=>{
     async function roomupdate() {
       const res = await axios.get("https://webrtc-multiple-connections.onrender.com/Rooms");
@@ -291,7 +305,7 @@ function App() {
   return (
     <div className='page'>
       <div className='left'>
-        <div className='mevideo'>
+        <div className={leaveoption ? "mevideo" : 'mevideo livebig' }>
             <h2 className='melabel'>ME</h2>
             <div>
               <button className='videorunning' onClick={videohandle}>{videorunning ? <IoVideocam /> : <IoVideocamOff />}</button>
@@ -299,14 +313,14 @@ function App() {
             </div>
             <video autoPlay playsInline width={400} height={400} ref={selfVideo} controls className='video'/>
         </div>
-        <div className='uservide'>
+        <div className={!leaveoption ? "uservide" : 'uservide livebig' }>
             <h2 className='otherlabel'>Other</h2>
             {wait && (
               <div className='wait'>wait</div>
             )}
             {/* {!wait && ( */}
 
-              <video autoPlay playsInline width={400} height={400} ref={userVideo} controls className='video'/>
+              <video autoPlay playsInline width={400} height={400} ref={userVideo} controls className='video' />
             {/* )}  */}
         </div>
       </div>
