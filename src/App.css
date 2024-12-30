@@ -133,8 +133,8 @@ body{
   justify-content: center;
   gap: 20px;
   overflow: scroll;
-  min-height: 50vh;
-  max-height: 50vh;
+  min-height: unset;
+  max-height:80vh;
   overflow-x: hidden;
   padding: 20px;
   background-color: #121212; /* Black theme */
