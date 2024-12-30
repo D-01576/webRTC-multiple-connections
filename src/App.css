@@ -206,13 +206,14 @@ button:active {
 
 /* Responsive design */
 @media screen and (max-width: 768px) {
+  body{
+    overflow: auto;
+  }
   .page {
     flex-direction: column;
     align-items: center;
     padding: 20px;
     padding-right: 40px;
-    overflow: scroll;
-    overflow-x: hidden;
   }
 
   .uservide.livebig{
