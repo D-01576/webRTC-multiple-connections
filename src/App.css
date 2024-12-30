@@ -224,6 +224,13 @@ button:active {
   }
 }
 
+.videorunning, .audiorunning{
+  font-weight: bolder;
+  font-size: 20px;
+  padding: 5px;
+  width: 50%;
+}
+
 /* Animations */
 @keyframes pulse {
   0% {

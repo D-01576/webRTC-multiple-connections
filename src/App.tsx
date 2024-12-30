@@ -4,15 +4,17 @@ import './App.css'
 import Rooms from './component/rooms'
 import RoomNamePopup from './component/addRoom';
 import axios from 'axios';
+import { FaMicrophoneAlt, FaMicrophoneAltSlash } from 'react-icons/fa';
+import { IoVideocam, IoVideocamOff } from 'react-icons/io5';
 
 interface Room {
   RoomName: string;
   sdp: string;
 }
 //@ts-ignore
-let videoTrack = null;
+let videoTrack: MediaStreamTrack | null = null;
 //@ts-ignore
-let audioTrack = null; 
+let audioTrack: MediaStreamTrack | null = null; 
 //@ts-ignore
 let pc = null
 
@@ -26,6 +28,8 @@ function App() {
   const [right, setright] = useState<boolean>(true)
   const [leaveoption, setleaveoption] = useState<boolean>(false)
   const [leftvideo,setleftvideo] = useState<boolean>(false)
+  const [videorunning, setvideorunning] = useState<boolean>(true);
+  const [audiorunning, setaudiorunning] = useState<boolean>(true);
   const selfVideo = useRef<HTMLVideoElement>(null);
   const userVideo = useRef<HTMLVideoElement>(null);
   // const [pc, setpc] = useState<RTCPeerConnection | null>(null);
@@ -262,12 +266,38 @@ function App() {
         //@ts-ignore
         pc?.addTrack(audioTrack)
   }
+
+  const videohandle = () => {
+    if(videorunning){
+      if (videoTrack) videoTrack.enabled = false;
+    }else {
+      if (videoTrack) videoTrack.enabled = true;
+    }
+
+    setvideorunning(!videorunning)
+  };
+  
+  const audiohandle = () => {
+    if(audiorunning){
+      if (audioTrack) audioTrack.enabled = false;
+    }else {
+      if (audioTrack) audioTrack.enabled = true;
+    }
+
+    setaudiorunning(!audiorunning)
+    console.log(audiorunning)
+  };
+  
   return (
     <div className='page'>
       <div className='left'>
         <div className='mevideo'>
             <h2 className='melabel'>ME</h2>
-        <video autoPlay width={400} height={400} ref={selfVideo} controls className='video'/>
+            <div>
+              <button className='videorunning' onClick={videohandle}>{videorunning ? <IoVideocam /> : <IoVideocamOff />}</button>
+              <button className='audiorunning' onClick={audiohandle}>{audiorunning ? <FaMicrophoneAlt /> : <FaMicrophoneAltSlash />}</button>
+            </div>
+            <video autoPlay playsInline width={400} height={400} ref={selfVideo} controls className='video'/>
         </div>
         <div className='uservide'>
             <h2 className='otherlabel'>Other</h2>
@@ -276,7 +306,7 @@ function App() {
             )}
             {/* {!wait && ( */}
 
-              <video autoPlay width={400} height={400} ref={userVideo} controls className='video'/>
+              <video autoPlay playsInline width={400} height={400} ref={userVideo} controls className='video'/>
             {/* )}  */}
         </div>
       </div>
