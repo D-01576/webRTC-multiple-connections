@@ -26,6 +26,7 @@ function App() {
   const [wait, setwait] = useState<boolean>(true)
   const [waitofsender, setwos] = useState<boolean>(false)
   const [right, setright] = useState<boolean>(true)
+  const [mobile, setmobile] = useState<boolean>(false)
   const [leaveoption, setleaveoption] = useState<boolean>(false)
   const [leftvideo,setleftvideo] = useState<boolean>(false)
   const [videorunning, setvideorunning] = useState<boolean>(true);
@@ -130,6 +131,7 @@ function App() {
           // userVideo.current.srcObject.addTrack(track1)
           //@ts-ignore
           userVideo.current.srcObject = newmedia;
+          ismobile()
           setwait(false)
           setleaveoption(true)
           //@ts-ignore
@@ -190,6 +192,7 @@ function App() {
           // userVideo.current.srcObject.addTrack(track1)
           //@ts-ignore
           userVideo.current.srcObject = newmedia;
+          ismobile()
           setwait(false)
           setleaveoption(true)
           //@ts-ignore
@@ -208,6 +211,7 @@ function App() {
           // userVideo.current.srcObject.addTrack(track1)
           //@ts-ignore
           userVideo.current.srcObject = newmedia;
+          ismobile()
           setwait(false)
           setleaveoption(true)
           //@ts-ignore
@@ -301,6 +305,19 @@ function App() {
     setaudiorunning(!audiorunning)
     console.log(audiorunning)
   };
+  function ismobile(){
+    if(userVideo.current){
+      userVideo.current.onloadedmetadata = () => {
+        const videoWidth = userVideo.current?.videoWidth || 0;
+        const videoHeight = userVideo.current?.videoHeight || 0;
+        console.log("Video Width:", videoWidth, "Video Height:", videoHeight);
+
+        if(videoWidth < videoHeight){
+          setmobile(true)
+        }
+      }
+    }
+  }
   
   return (
     <div className='page'>
@@ -313,7 +330,16 @@ function App() {
             </div>
             <video autoPlay playsInline width={400} height={400} ref={selfVideo} controls className='video'/>
         </div>
-        <div className={!leaveoption ? "uservide" : 'uservide livebig' }>
+        <div className={(() => {
+          if (leaveoption) {
+            if (mobile) {
+              return 'uservide livebig mobilel';
+            } else {
+              return 'uservide livebig';
+            }
+          }
+          return 'uservide';
+        })()}>
             <h2 className='otherlabel'>Other</h2>
             {wait && (
               <div className='wait'>wait</div>
